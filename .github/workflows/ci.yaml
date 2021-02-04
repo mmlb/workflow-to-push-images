@@ -1,0 +1,50 @@
+name: ci
+on:
+  push:
+
+env:
+  QUAY_REPO: quay.io/packet/mmlb-test-gha-pushes
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Compute Image Tags
+        id: compute-image-tags
+        run: |
+          tags=${QUAY_REPO}:${GITHUB_SHA::8}
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+            tags+=,${QUAY_REPO}:latest
+          fi
+          echo tags=$tags
+          echo ::set-output name=tags::$tags
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Quay
+        uses: docker/login-action@v1
+        if: github.ref == 'refs/heads/main'
+        with:
+          registry: quay.io
+          username: ${{ secrets.REPO_USERNAME }}
+          password: ${{ secrets.REPO_PASSWORD }}
+
+      - name: Build and push
+        id: build-and-push
+        uses: docker/build-push-action@v2
+        with:
+          push: ${{ startsWith(github.ref, 'refs/heads/main') }}
+          tags: ${{ steps.compute-image-tags.outputs.tags }}
+          build-args: |
+            GITCOMMIT=${{github.sha}}
+            GITBRANCH=${{github.ref}}
+
+      - name: Image digest
+        run: echo ${{ steps.build-and-push.outputs.digest }}
