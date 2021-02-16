@@ -10,3 +10,5 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - run: env | sort
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
