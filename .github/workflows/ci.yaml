@@ -41,6 +41,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: ${{ github.ref == 'refs/heads/main' }}
+          load: ${{ github.ref != 'refs/heads/main' }}
           tags: ${{ steps.compute-image-tags.outputs.tags }}
           build-args: |
             GITCOMMIT=${{github.sha}}
