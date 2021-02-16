@@ -1,0 +1,12 @@
+name: push-pr-images
+on:
+  workflow_run:
+    workflows:
+      - ci
+    types: 
+      - completed
+jobs:
+  upload:
+    runs-on: ubuntu-20.04
+    steps:
+      - run: env | sort
