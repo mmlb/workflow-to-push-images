@@ -16,6 +16,7 @@ jobs:
         id: compute-image-tags
         run: |
           tags=${QUAY_REPO}:${GITHUB_SHA::8}
+          echo ::set-output name=sha-tag::$tags
           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
             tags+=,${QUAY_REPO}:latest
           fi
@@ -51,7 +52,7 @@ jobs:
 
       - name: Save Image
         if: github.ref != 'refs/heads/main'
-        run: docker save ${{ steps.build-image.outputs.digest }} >image.tar
+        run: docker save ${{ steps.compute-image-tags.outputs.sha-tag }} >image.tar
 
       - name: Upload Image As Artifact
         if: github.ref != 'refs/heads/main'
