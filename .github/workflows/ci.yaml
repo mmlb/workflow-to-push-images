@@ -49,5 +49,16 @@ jobs:
             GITCOMMIT=${{github.sha}}
             GITBRANCH=${{github.ref}}
 
+      - name: Save Image
+        if: github.ref != 'refs/heads/main'
+        run: docker save ${{ steps.build-image.outputs.digest }} >image.tar
+
+      - name: Upload Image As Artifact
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Image
+          path: image.tar
+
       - name: Image digest
         run: echo ${{ steps.build-image.outputs.digest }}
