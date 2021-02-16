@@ -43,6 +43,8 @@ jobs:
           push: ${{ github.ref == 'refs/heads/main' }}
           load: ${{ github.ref != 'refs/heads/main' }}
           tags: ${{ steps.compute-image-tags.outputs.tags }}
+          cache-from: type=registry,ref=${QUAY_REPO}:latest
+          cache-to: type=inline
           build-args: |
             GITCOMMIT=${{github.sha}}
             GITBRANCH=${{github.ref}}
