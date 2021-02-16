@@ -36,15 +36,15 @@ jobs:
           username: ${{ secrets.REPO_USERNAME }}
           password: ${{ secrets.REPO_PASSWORD }}
 
-      - name: Build and push
-        id: build-and-push
+      - name: Build Image
+        id: build-image
         uses: docker/build-push-action@v2
         with:
-          push: ${{ startsWith(github.ref, 'refs/heads/main') }}
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.compute-image-tags.outputs.tags }}
           build-args: |
             GITCOMMIT=${{github.sha}}
             GITBRANCH=${{github.ref}}
 
       - name: Image digest
-        run: echo ${{ steps.build-and-push.outputs.digest }}
+        run: echo ${{ steps.build-image.outputs.digest }}
