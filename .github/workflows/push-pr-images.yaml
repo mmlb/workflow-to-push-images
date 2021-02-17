@@ -38,4 +38,10 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/image.zip', Buffer.from(download.data));
-      - run: unzip image.zip
+      - name: Load Image Into Docker
+        run: |
+          unzip image.zip
+          ls
+          docker images
+          docker load <image.tar
+          docker images
