@@ -1,10 +1,6 @@
 name: ci
 on:
   push:
-
-env:
-  QUAY_REPO: quay.io/packet/mmlb-test-gha-pushes
-
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -12,38 +8,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Compute Image Tags
-        id: compute-image-tags
-        run: |
-          tags=${QUAY_REPO}:${GITHUB_SHA::8}
-          echo ::set-output name=sha-tag::$tags
-          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-            tags+=,${QUAY_REPO}:latest
-          fi
-          echo tags=$tags
-          echo ::set-output name=tags::$tags
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to Quay
-        uses: docker/login-action@v1
-        if: github.ref == 'refs/heads/main'
-        with:
-          registry: quay.io
-          username: ${{ secrets.REPO_USERNAME }}
-          password: ${{ secrets.REPO_PASSWORD }}
-
       - name: Build Image
         id: build-image
         uses: docker/build-push-action@v2
         with:
-          push: ${{ github.ref == 'refs/heads/main' }}
-          load: ${{ github.ref != 'refs/heads/main' }}
-          tags: ${{ steps.compute-image-tags.outputs.tags }}
+          load: true
+          tags: ci-image-build:sha-${{github.sha}}
           cache-from: type=registry,ref=${QUAY_REPO}:latest
           cache-to: type=inline
           build-args: |
@@ -52,14 +28,13 @@ jobs:
 
       - name: Save Image
         if: github.ref != 'refs/heads/main'
-        run: docker save ${{ steps.compute-image-tags.outputs.sha-tag }} >image.tar
+        run: docker save ci-image-build:sha-${{github.sha}} >image.tar
 
       - name: Upload Image As Artifact
-        if: github.ref != 'refs/heads/main'
         uses: actions/upload-artifact@v2
         with:
           name: image
           path: image.tar
 
       - name: Image digest
-        run: echo ${{ steps.build-image.outputs.digest }}
+        run: echo ${{steps.build-image.outputs.digest}}
