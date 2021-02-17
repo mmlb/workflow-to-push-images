@@ -58,7 +58,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         uses: actions/upload-artifact@v2
         with:
-          name: Image
+          name: image
           path: image.tar
 
       - name: Image digest
