@@ -27,7 +27,6 @@ jobs:
             GITBRANCH=${{github.ref}}
 
       - name: Save Image
-        if: github.ref != 'refs/heads/main'
         run: docker save ci-image-build:sha-${{github.sha}} >image.tar
 
       - name: Upload Image As Artifact

@@ -52,7 +52,8 @@ jobs:
 
       - name: ReTag and Push
         run: |
-          sha=${${{ github.event.workflow_run.head_sha }}::8}
+          sha=${{ github.event.workflow_run.head_sha }}
+          sha=${sha::8}
           tags=()
           if [[ ${{ github.event.workflow_run.event}} == "pull_request" ]]; then
               QUAY_REPO+=-pr
