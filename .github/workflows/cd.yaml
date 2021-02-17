@@ -68,6 +68,7 @@ jobs:
           fi
           iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk "/ci-image-build:sha-${GITHUB_SHA::8}/ {print $2}")
           set -x
+          echo "num tags=${#tags[@]}"
           for tag in "${tags[@]}"; do
               docker tag "$iid" "$tag"
               docker push "$tag"
