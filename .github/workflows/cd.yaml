@@ -1,4 +1,4 @@
-name: push-pr-images
+name: cd
 on:
   workflow_run:
     workflows:
