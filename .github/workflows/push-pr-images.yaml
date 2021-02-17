@@ -24,7 +24,7 @@ jobs:
                run_id: ${{github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "image"
+              return artifact.name == "Image"
             })[0];
             var download = await github.actions.downloadArtifact({
                owner: context.repo.owner,
