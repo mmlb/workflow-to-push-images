@@ -52,6 +52,7 @@ jobs:
 
       - name: ReTag and Push
         run: |
+          set -x
           sha=${{ github.event.workflow_run.head_sha }}
           sha=${sha::8}
           tags=()
@@ -66,6 +67,7 @@ jobs:
                   tags+=(${QUAY_REPO}:latest)
               fi
           fi
+          docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | sort
           iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk '/ci-image-build:sha-'"$sha"'/ {print $2}')
           for tag in "${tags[@]}"; do
               echo "tag=$tag"
