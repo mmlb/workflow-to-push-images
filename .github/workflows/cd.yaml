@@ -24,7 +24,7 @@ jobs:
             var artifacts = await github.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{github.event.workflow_run.id }},
+               run_id: ${{ github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "image"
@@ -36,7 +36,12 @@ jobs:
                archive_format: 'zip',
             });
             var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/image.zip', Buffer.from(download.data));
+            fs.writeFileSync('${{ github.workspace }}/image.zip', Buffer.from(download.data));
+
+      - name: Load Image Into Docker
+        run: |
+          unzip image.zip
+          docker load <image.tar
 
       - name: Login to Quay
         uses: docker/login-action@v1
@@ -45,17 +50,12 @@ jobs:
           username: ${{ secrets.REPO_USERNAME }}
           password: ${{ secrets.REPO_PASSWORD }}
 
-      - name: Load Image Into Docker
-        run: |
-          unzip image.zip
-          docker load <image.tar
-
       - name: ReTag and Push
         run: |
           sha=${{ github.event.workflow_run.head_sha }}
           sha=${sha::8}
           tags=()
-          if [[ ${{ github.event.workflow_run.event}} == "pull_request" ]]; then
+          if [[ ${{ github.event.workflow_run.event }} == "pull_request" ]]; then
               QUAY_REPO+=-pr
               tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull }})
               tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull }}-sha${sha})
