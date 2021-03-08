@@ -58,19 +58,17 @@ jobs:
           if [[ ${{ github.event.workflow_run.event }} == "pull_request" ]]; then
               QUAY_REPO+=-pr
               tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull }})
-              tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull }}-sha${sha})
+              tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull }}-sha-${sha})
           else
-              tags+=(${QUAY_REPO}:sha${sha})
-              tags+=(${QUAY_REPO}:${{ github.event.workflow_run.head_branch }}-sha${sha})
+              tags+=(${QUAY_REPO}:sha-${sha})
+              tags+=(${QUAY_REPO}:${{ github.event.workflow_run.head_branch }}-sha-${sha})
               if [[ ${{ github.event.workflow_run.head_branch }} == 'main' ]]; then
                   tags+=(${QUAY_REPO}:latest)
               fi
           fi
-          iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk "/ci-image-build:sha-${GITHUB_SHA::8}/ {print $2}")
-          set -x
-          echo "num tags=${#tags[@]}"
+          iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk '/ci-image-build:sha-'"$sha"'/ {print $2}')
           for tag in "${tags[@]}"; do
+              echo "tag=$tag"
               docker tag "$iid" "$tag"
               docker push "$tag"
           done
-          set +x
