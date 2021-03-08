@@ -68,7 +68,7 @@ jobs:
               fi
           fi
           docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | sort
-          iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk '/ci-image-build:sha-'"$sha"'/ {print $2}')
+          iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk '/ci-image-build/ {print $2}')
           for tag in "${tags[@]}"; do
               echo "tag=$tag"
               docker tag "$iid" "$tag"
