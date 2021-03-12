@@ -72,12 +72,10 @@ jobs:
                   docker push -q "$tag"
           done
 
-          docker images --digests
-          sleep 1
-          digests=$(docker images --digests | grep "$QUAY_REPO" | awk '{print $3}' | sort -u)
-          docker manifest create "$repo" "$digest"
+          digests=$(docker images --format '{{.Digest}}' --filter reference="$QUAY_REPO" | sort)
+          docker manifest create "$repo" "$digests"
           docker manifest push "$repo"
 
-          docker images --format '{{.Repository}} {{.Tag}}' | grep "$repotag"- | sort | awk '{printf $2}' | while read tag; do
+          docker images --format '{{.Tag}}' --filter reference="$QUAY_REPO:sha-*-*" | sort | while read tag; do
               echo curl --ouath2-bearer OAUTH2_BEARER -XDELETE "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
           done
