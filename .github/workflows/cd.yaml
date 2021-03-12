@@ -24,7 +24,7 @@ jobs:
             var artifacts = await github.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+               run_id: ${{github.event.workflow_run.id}},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "images"
@@ -36,7 +36,7 @@ jobs:
                archive_format: 'zip',
             });
             var fs = require('fs');
-            fs.writeFileSync('${{ github.workspace }}/images.zip', Buffer.from(download.data));
+            fs.writeFileSync('${{github.workspace}}/images.zip', Buffer.from(download.data));
 
       - name: Load Images Into Docker
         run: |
@@ -49,23 +49,23 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: quay.io
-          username: ${{ secrets.REPO_USERNAME }}
-          password: ${{ secrets.REPO_PASSWORD }}
+          username: ${{secrets.REPO_USERNAME}}
+          password: ${{secrets.REPO_PASSWORD}}
 
       - name: ReTag and Push
         run: |
           set -x
-          sha=${{ github.event.workflow_run.head_sha }}
+          sha=${{github.event.workflow_run.head_sha}}
           sha=${sha::8}
           tags=()
-          if [[ ${{ github.event.workflow_run.event }} == "pull_request" ]]; then
+          if [[ ${{github.event.workflow_run.event}} == "pull_request" ]]; then
               QUAY_REPO+=-pr
-              tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull_requests[0].number }})
-              tags+=(${QUAY_REPO}:pr${{ github.event.workflow_run.pull_requests[0].number }}-sha-${sha})
+              tags+=(${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}})
+              tags+=(${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha})
           else
               tags+=(${QUAY_REPO}:sha-${sha})
-              tags+=(${QUAY_REPO}:${{ github.event.workflow_run.head_branch }}-sha-${sha})
-              if [[ ${{ github.event.workflow_run.head_branch }} == 'main' ]]; then
+              tags+=(${QUAY_REPO}:${{github.event.workflow_run.head_branch}}-sha-${sha})
+              if [[ ${{github.event.workflow_run.head_branch}} == 'main' ]]; then
                   tags+=(${QUAY_REPO}:latest)
               fi
           fi
