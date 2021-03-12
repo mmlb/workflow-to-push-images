@@ -27,7 +27,7 @@ jobs:
                run_id: ${{ github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "image"
+              return artifact.name == "images"
             })[0];
             var download = await github.actions.downloadArtifact({
                owner: context.repo.owner,
@@ -36,12 +36,14 @@ jobs:
                archive_format: 'zip',
             });
             var fs = require('fs');
-            fs.writeFileSync('${{ github.workspace }}/image.zip', Buffer.from(download.data));
+            fs.writeFileSync('${{ github.workspace }}/images.zip', Buffer.from(download.data));
 
-      - name: Load Image Into Docker
+      - name: Load Images Into Docker
         run: |
-          unzip image.zip
-          docker load <image.tar
+          unzip images.zip
+          for image in *.tar; do
+            docker load <$image
+          done
 
       - name: Login to Quay
         uses: docker/login-action@v1

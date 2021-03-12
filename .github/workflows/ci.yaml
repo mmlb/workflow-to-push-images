@@ -33,7 +33,7 @@ jobs:
           mkdir images
           for platform in ${platforms//,/ }; do
             tag=sha-${{github.sha}}-${platform//'/'/-}
-            docker buildx build --tag "ci-image-build:$tag" --platform=$platform --output type=docker,dest=images/$tag .
+            docker buildx build --tag "ci-image-build:$tag" --platform=$platform --output type=docker,dest=images/$tag.tar .
           done
 
       - name: Upload Images As Artifact
