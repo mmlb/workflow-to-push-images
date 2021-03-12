@@ -3,7 +3,7 @@ on:
   workflow_run:
     workflows:
       - ci
-    types: 
+    types:
       - completed
 env:
   QUAY_REPO: packet/mmlb-test-gha-pushes
@@ -65,10 +65,10 @@ jobs:
 
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | grep ci-image-build
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
-	          tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
-	          docker tag "$id" $tag
-	          docker rm ci-image-build:$oldtag
-	          docker push -q "$tag"
+                  tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
+                  docker tag "$id" $tag
+                  docker rm ci-image-build:$oldtag
+                  docker push -q "$tag"
           done
 
           docker images --digests | grep "$repo"

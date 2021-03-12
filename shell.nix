@@ -20,5 +20,6 @@ in
 mkShell {
   buildInputs = [
     docker-ov
+    nodePackages.prettier
   ];
 }
