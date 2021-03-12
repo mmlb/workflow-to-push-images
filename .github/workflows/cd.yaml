@@ -72,7 +72,7 @@ jobs:
                   docker push -q "$tag"
           done
 
-          digests=$(docker images --format '{{.Digest}}' --filter reference="quay.io/$QUAY_REPO" | sort)
+          digests=$(docker images --format '{{.Digest}}' --filter reference="quay.io/$QUAY_REPO" | sort | sed "s|^|quay.io/$QUAY_REPO@|" | tr '\n' ' ')
           docker manifest create "$repo" "$digests"
           docker manifest push "$repo"
 
