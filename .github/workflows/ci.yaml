@@ -31,13 +31,12 @@ jobs:
       - name: Export Images
         run: |
           mkdir images
-          set -x
           for platform in ${platforms//,/ }; do
             tag=sha-${{github.sha}}-${platform//'/'/-}
             docker buildx build --tag "ci-image-build:$tag" --platform=$platform --output type=docker,dest=images/$tag .
           done
 
-      - name: Upload Image As Artifact
+      - name: Upload Images As Artifact
         uses: actions/upload-artifact@v2
         with:
           name: images
