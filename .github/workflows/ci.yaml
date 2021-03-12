@@ -2,6 +2,8 @@ name: ci
 on:
   pull_request:
   push:
+env:
+  platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -16,25 +18,26 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build Image
-        id: build-image
         uses: docker/build-push-action@v2
         with:
-          load: true
           tags: ci-image-build:sha-${{github.sha}}
           cache-from: type=registry,ref=${QUAY_REPO}:latest
           cache-to: type=inline
+          platforms: ${{env.platforms}}
           build-args: |
             GITCOMMIT=${{github.sha}}
             GITBRANCH=${{github.ref}}
 
-      - name: Save Image
-        run: docker save ci-image-build:sha-${{github.sha}} >image.tar
+      - name: Export Images
+        run: |
+          mkdir images
+          for platform in ${platforms}; do
+            tag=sha-${{github.sha}}-${platform//-}
+            docker buildx build --tag "ci-image-build:$tag" --platform=$platform --output type=docker,dest=images/$tag .
+          done
 
       - name: Upload Image As Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: image
-          path: image.tar
-
-      - name: Image digest
-        run: echo ${{steps.build-image.outputs.digest}}
+          name: images
+          path: images

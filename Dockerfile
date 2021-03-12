@@ -7,4 +7,4 @@ ENV GITBRANCH=${GITBRANCH:-unknown}
 RUN echo GITCOMMIT=$GITCOMMIT && \
     echo GITBRANCH=$GITBRANCH
 
-CMD env | grep GIT
+CMD env | grep -e GIT -e REV
