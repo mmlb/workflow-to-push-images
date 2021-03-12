@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir images
           set -x
-          for platform in ${platforms}; do
+          for platform in ${platforms/,/ }; do
             tag=sha-${{github.sha}}-${platform//-}
             docker buildx build --tag "ci-image-build:$tag" --platform=$platform --output type=docker,dest=images/$tag .
           done
