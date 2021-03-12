@@ -1,4 +1,4 @@
-name: cd
+mame: cd
 on:
   workflow_run:
     workflows:
@@ -68,7 +68,7 @@ jobs:
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
                   tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
                   docker tag "$id" $tag
-                  docker rm ci-image-build:$oldtag
+                  docker rmi ci-image-build:$oldtag
                   docker push -q "$tag"
           done
 
