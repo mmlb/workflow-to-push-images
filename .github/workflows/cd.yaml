@@ -6,7 +6,7 @@ on:
     types: 
       - completed
 env:
-  QUAY_REPO: quay.io/packet/mmlb-test-gha-pushes
+  QUAY_REPO: packet/mmlb-test-gha-pushes
 jobs:
   upload:
     if: github.event.workflow_run.conclusion == 'success'
@@ -52,27 +52,30 @@ jobs:
           username: ${{secrets.REPO_USERNAME}}
           password: ${{secrets.REPO_PASSWORD}}
 
-      - name: ReTag and Push
+      - name: Push Images and Manifest
         run: |
           set -x
           sha=${{github.event.workflow_run.head_sha}}
           sha=${sha::8}
-          tags=()
+          repo=${QUAY_REPO}:sha-${sha}
           if [[ ${{github.event.workflow_run.event}} == "pull_request" ]]; then
               QUAY_REPO+=-pr
-              tags+=(${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}})
-              tags+=(${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha})
-          else
-              tags+=(${QUAY_REPO}:sha-${sha})
-              tags+=(${QUAY_REPO}:${{github.event.workflow_run.head_branch}}-sha-${sha})
-              if [[ ${{github.event.workflow_run.head_branch}} == 'main' ]]; then
-                  tags+=(${QUAY_REPO}:latest)
-              fi
+              repo=${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha}
           fi
-          docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | sort
-          iid=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk '/ci-image-build/ {print $2}')
-          for tag in "${tags[@]}"; do
-              echo "tag=$tag"
-              docker tag "$iid" "$tag"
-              docker push "$tag"
+
+          docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | grep ci-image-build
+          docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
+	          tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
+	          docker tag "$id" $tag
+	          docker rm ci-image-build:$oldtag
+	          docker push -q "$tag"
+          done
+
+          docker images --digests | grep "$repo"
+          digests=$(docker images --digests | grep "$repo" | awk '{print $3}' | sort -u)
+          docker manifest create "$repo" "$digest"
+          docker manifest push "$repo"
+
+          docker images --format '{{.Repository}} {{.Tag}}' | grep "$repotag"- | sort | awk '{printf $2}' | while read tag; do
+              echo curl --ouath2-bearer OAUTH2_BEARER -XDELETE "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
           done
