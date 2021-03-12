@@ -74,7 +74,7 @@ jobs:
 
           docker images --digests
           sleep 1
-          digests=$(docker images --digests | grep "$repo" | awk '{print $3}' | sort -u)
+          digests=$(docker images --digests | grep "$QUAY_REPO" | awk '{print $3}' | sort -u)
           docker manifest create "$repo" "$digest"
           docker manifest push "$repo"
 
