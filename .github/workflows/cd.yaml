@@ -64,6 +64,7 @@ jobs:
           fi
 
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | grep ci-image-build
+          sleep 1
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
                   tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
                   docker tag "$id" $tag
@@ -72,6 +73,7 @@ jobs:
           done
 
           docker images --digests | grep "$repo"
+          sleep 1
           digests=$(docker images --digests | grep "$repo" | awk '{print $3}' | sort -u)
           docker manifest create "$repo" "$digest"
           docker manifest push "$repo"
