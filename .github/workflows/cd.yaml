@@ -69,12 +69,10 @@ jobs:
                   docker push -q "$t"
           done
 
-          set -x
           digests=$(docker images --format '{{.Digest}}' --filter reference="quay.io/$QUAY_REPO" | sort | sed "s|^|quay.io/$QUAY_REPO@|" | tr '\n' ' ')
           docker manifest create "quay.io/$tag" $digests
           docker manifest push "quay.io/$tag"
 
-          docker images --format '{{.Tag}}' --filter reference="quay.io/$tag-*" | sort
           docker images --format '{{.Tag}}' --filter reference="quay.io/$tag-*" | sort | while read tag; do
               echo "deleting https://quay.io/api/v1/repository/${QUAY_REPO}/tag/$tag"
               curl \
