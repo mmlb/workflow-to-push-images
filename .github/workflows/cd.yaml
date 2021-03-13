@@ -73,11 +73,12 @@ jobs:
           docker manifest create "quay.io/$repo" $digests
           docker manifest push "quay.io/$repo"
 
-          curl --help all | grep retry
           docker images --format '{{.Tag}}' --filter reference="quay.io/$QUAY_REPO:sha-*-*" | sort | while read tag; do
+              echo "deleting https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
               curl \
                   --oauth2-bearer ${{secrets.QUAY_API_TOKEN}} \
                   --retry 5 \
+                  --retry-connrefused \
                   --retry-delay 2 \
                   -XDELETE \
                   "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
