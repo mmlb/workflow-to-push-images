@@ -82,5 +82,5 @@ jobs:
                   --retry-connrefused \
                   --retry-delay 2 \
                   -XDELETE \
-                  "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
+                  "https://quay.io/api/v1/repository/${QUAY_REPO}/tag/$tag"
           done
