@@ -56,26 +56,26 @@ jobs:
         run: |
           sha=${{github.event.workflow_run.head_sha}}
           sha=${sha::8}
-          repo=${QUAY_REPO}:sha-${sha}
+          tag=${QUAY_REPO}:sha-${sha}
           if [[ ${{github.event.workflow_run.event}} == "pull_request" ]]; then
               QUAY_REPO+=-pr
-              repo=${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha}
+              tag=${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha}
           fi
 
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
-                  tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
-                  docker tag "$id" $tag
-                  docker rmi ci-image-build:$oldtag
-                  docker push -q "$tag"
+                  t=quay.io/$tag-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
+                  docker tag "$id" "$t"
+                  docker rmi "ci-image-build:$oldtag"
+                  docker push -q "$t"
           done
 
           set -x
           digests=$(docker images --format '{{.Digest}}' --filter reference="quay.io/$QUAY_REPO" | sort | sed "s|^|quay.io/$QUAY_REPO@|" | tr '\n' ' ')
-          docker manifest create "quay.io/$repo" $digests
-          docker manifest push "quay.io/$repo"
+          docker manifest create "quay.io/$tag" $digests
+          docker manifest push "quay.io/$tag"
 
-          docker images --format '{{.Tag}}' --filter reference="quay.io/$QUAY_REPO:sha-*-*" | sort
-          docker images --format '{{.Tag}}' --filter reference="quay.io/$QUAY_REPO:sha-*-*" | sort | while read tag; do
+          docker images --format '{{.Tag}}' --filter reference="quay.io/$tag-*" | sort
+          docker images --format '{{.Tag}}' --filter reference="quay.io/$tag-*" | sort | while read tag; do
               echo "deleting https://quay.io/api/v1/repository/${QUAY_REPO}/tag/$tag"
               curl \
                   --fail \
