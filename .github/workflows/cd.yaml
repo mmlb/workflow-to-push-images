@@ -54,7 +54,6 @@ jobs:
 
       - name: Push Images and Manifest
         run: |
-          set -x
           sha=${{github.event.workflow_run.head_sha}}
           sha=${sha::8}
           repo=${QUAY_REPO}:sha-${sha}
@@ -63,8 +62,6 @@ jobs:
               repo=${QUAY_REPO}:pr${{github.event.workflow_run.pull_requests[0].number}}-sha-${sha}
           fi
 
-          docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | grep ci-image-build
-          sleep 1
           docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read oldtag id; do
                   tag=quay.io/$repo-$(sed 's|sha-[0-9a-z]\+-||' <<<$oldtag)
                   docker tag "$id" $tag
@@ -77,5 +74,5 @@ jobs:
           docker manifest push "quay.io/$repo"
 
           docker images --format '{{.Tag}}' --filter reference="quay.io/$QUAY_REPO:sha-*-*" | sort | while read tag; do
-              echo curl --ouath2-bearer OAUTH2_BEARER -XDELETE "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
+              curl --ouath2-bearer OAUTH2_BEARER -XDELETE "https://quay.io/api/v1/repository/${QUAY_REPO}/$tag"
           done
