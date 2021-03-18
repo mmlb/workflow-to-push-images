@@ -1,3 +1,5 @@
+# MMLB NEEDS MIKES HELP!!!
+# AND IS GRATEFUL FOR IT!!!!!!
 FROM alpine:latest
 
 ARG GITCOMMIT
