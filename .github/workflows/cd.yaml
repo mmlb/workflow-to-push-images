@@ -1,4 +1,4 @@
-name: cd
+name: Push to Quay
 on:
   workflow_run:
     workflows:
@@ -6,17 +6,12 @@ on:
     types:
       - completed
 env:
-  QUAY_REPO: packet/mmlb-test-gha-pushes
+  QUAY_REPO: quay.io/packet/mmlb-test-gha-pushes
 jobs:
   upload:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-20.04
     steps:
-      - name: Dump context
-        uses: crazy-max/ghaction-dump-context@v1
-
-        # from https://securitylab.github.com/research/github-actions-preventing-pwn-requests
-        # until https://github.com/actions/download-artifact/issues/60 is closed
       - name: Download artifact
         uses: actions/github-script@v3.1.0
         with:

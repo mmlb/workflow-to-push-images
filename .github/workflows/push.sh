@@ -7,11 +7,19 @@ sha=${sha::8}
 event=$2
 pr=$3
 
-tag=quay.io/$QUAY_REPO:sha-$sha
-if [[ $event == "pull_request" ]]; then
+case "$event" in
+"push")
+	tag=$QUAY_REPO:sha-$sha
+	;;
+"pull_request")
 	QUAY_REPO+=-pr
-	tag=quay.io/$QUAY_REPO:pr$pr-sha-$sha
-fi
+	tag=$QUAY_REPO:pr$pr-sha-$sha
+	;;
+*)
+	echo "unknown event_type:$event" >&2
+	exit 1
+	;;
+esac
 
 docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-image-build/ {printf "%s %s\n", $2, $3}' | while read -r oldtag id; do
 	# shellcheck disable=SC2001
@@ -21,13 +29,15 @@ docker images --format '{{.Repository}} {{.Tag}} {{.ID}}' | sort | awk '/ci-imag
 	docker push -q "$t"
 done
 
-mapfile -t digests < <(docker images --format '{{.Digest}}' --filter reference="quay.io/$QUAY_REPO" | sort | sed "s|^|quay.io/$QUAY_REPO@|" | tr '\n' ' ')
+mapfile -t digests < <(docker images --format '{{.Digest}}' --filter reference="$QUAY_REPO" | sort | sed "s|^|$QUAY_REPO@|" | tr '\n' ' ')
 docker manifest create "$tag" ${digests[@]}
 docker manifest push "$tag"
 
+QUAY_REPO_URL=https://quay.io/api/v1/repository/${QUAY_REPO/"quay.io/"/}
 set +x
 docker images --format '{{.Tag}}' --filter reference="$tag-*" | sort | while read -r tag; do
-	echo "deleting https://quay.io/api/v1/repository/$QUAY_REPO/tag/$tag"
+	url=$QUAY_REPO_URL/tag/$tag
+	echo "deleting $url"
 	curl \
 		--fail \
 		--oauth2-bearer "$QUAY_API_TOKEN" \
@@ -36,5 +46,5 @@ docker images --format '{{.Tag}}' --filter reference="$tag-*" | sort | while rea
 		--retry-delay 2 \
 		--silent \
 		-XDELETE \
-		"https://quay.io/api/v1/repository/$QUAY_REPO/tag/$tag"
+		"$url"
 done
